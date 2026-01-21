@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>درس النهي عن الغضب – الصف السابع – مدرسة نيوتن سماش</title>
+
+<style>
+:root{
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --primary:#3b82f6;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --text:#1f2937;
+}
+*{box-sizing:border-box;font-family:"Cairo",system-ui,Arial;}
+body{
+  margin:0;background:linear-gradient(135deg,#eef2ff,#f8fafc);
+  color:var(--text);
+}
+header{
+  text-align:center;padding:24px;
+}
+header h1{margin:0;font-size:1.4rem}
+header h2{margin:8px 0 0;font-weight:500;color:#475569}
+.app{
+  max-width:900px;margin:0 auto;padding:16px;
+}
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+.question{
+  font-size:1.15rem;margin-bottom:16px;
+}
+.unit{
+  font-size:.9rem;color:#64748b;margin-bottom:8px;
+}
+.options{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+}
+button.option{
+  padding:14px;border-radius:14px;border:2px solid #e5e7eb;
+  background:#fff;font-size:1rem;cursor:pointer;
+  transition:.2s;
+}
+button.option:hover{transform:translateY(-2px)}
+button.correct{
+  background:var(--success);color:#fff;border-color:var(--success);
+}
+button.wrong{
+  background:var(--danger);color:#fff;border-color:var(--danger);
+}
+.footer{
+  margin-top:16px;display:flex;justify-content:space-between;align-items:center;
+  color:#475569;font-size:.9rem;
+}
+.progress{
+  height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;flex:1;margin:0 12px;
+}
+.progress span{
+  display:block;height:100%;background:var(--primary);width:0%;
+}
+.stars{
+  position:fixed;inset:0;pointer-events:none;display:none;
+}
+.star{
+  position:absolute;font-size:24px;animation:float 1s ease-out forwards;
+}
+@keyframes float{
+  from{opacity:1;transform:translateY(0) scale(1)}
+  to{opacity:0;transform:translateY(-120px) scale(1.5)}
+}
+@media(max-width:640px){
+  .options{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>درس النهي عن الغضب</h1>
+  <h2>الصف السابع – مدرسة نيوتن سماش</h2>
+</header>
+
+<div class="app">
+  <div class="card">
+    <div class="unit" id="unit"></div>
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+
+    <div class="footer">
+      <span id="counter"></span>
+      <div class="progress"><span id="bar"></span></div>
+      <span>🎧🔊</span>
+    </div>
+  </div>
+</div>
+
+<div class="stars" id="stars"></div>
+
+<!-- أصوات -->
+<audio id="correctSound">
+  <source src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" type="audio/mpeg">
+</audio>
+<audio id="wrongSound">
+  <source src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// ======= بنك الأسئلة (30 سؤالًا) =======
+const questions = [
+{u:"الحديث الشريف",q:"ما وصية النبي ﷺ في الحديث الشريف؟",o:["لا تغضب","أكثر من الكلام","لا تكرر السؤال","لا تنصح أحدًا"],a:0},
+{u:"الحديث الشريف",q:"من راوي حديث «لا تغضب»؟",o:["ابن عباس","أبو هريرة","أنس بن مالك","عمر بن الخطاب"],a:1},
+{u:"معاني المفردات",q:"معنى «أوصِني» هو:",o:["انصرني","أكرمني","عِظني وانصحني","أعطني مالًا"],a:2},
+{u:"معاني المفردات",q:"معنى «ردد مرارًا» هو:",o:["قال مرة واحدة","كرر عدة مرات","توقف عن الكلام","استمع فقط"],a:1},
+{u:"تعريف الغضب",q:"الغضب هو:",o:["هدوء النفس","ثوران في النفس يدفع للبطش","حزن شديد","فرح مفاجئ"],a:1},
+
+{u:"مظاهر الغضب",q:"من مظاهر الغضب في الهيئة:",o:["صفاء الوجه","تغير اللون واحمرار العينين","الابتسامة","السكون"],a:1},
+{u:"مظاهر الغضب",q:"من مظاهر الغضب في اللسان:",o:["الذكر","السكوت","الألفاظ القبيحة","النصيحة"],a:2},
+{u:"مظاهر الغضب",q:"من مظاهر الغضب في الجوارح:",o:["الجلوس","الضرب والتكسير","الوضوء","الاستعاذة"],a:1},
+{u:"مظاهر الغضب",q:"من مظاهر الغضب في القلب:",o:["الطمأنينة","الحقد والكره","الرضا","السكينة"],a:1},
+
+{u:"علاج الغضب",q:"أول علاج للغضب هو:",o:["السكوت","الاستعاذة بالله","الجلوس","الوضوء"],a:1},
+{u:"علاج الغضب",q:"قال النبي ﷺ: إذا غضب أحدكم فـ...",o:["يصرخ","يتكلم","يسكت","ينصرف"],a:2},
+{u:"علاج الغضب",q:"تغيير الحالة يعني:",o:["الوقوف دائمًا","الجلوس أو الاضطجاع","الخروج من المكان فقط","الكلام بصوت عال"],a:1},
+{u:"علاج الغضب",q:"شُرع الوضوء لأن الغضب من:",o:["الماء","الهواء","الشيطان","النار"],a:3},
+
+{u:"الدروس المستفادة",q:"الغضب سبب:",o:["للخير","للراحة","لكثير من الشر","للنجاح"],a:2},
+{u:"الدروس المستفادة",q:"تكرار الوصية يدل على:",o:["عدم الأهمية","التأكيد على أهميتها","الملل","النسيان"],a:1},
+{u:"الدروس المستفادة",q:"من أخلاق المسلم:",o:["العجلة","كظم الغيظ","الانتقام","القسوة"],a:1},
+
+{u:"التقويم",q:"أسلم أبو هريرة على يد:",o:["النبي ﷺ","الطفيل بن عمرو","عمر بن الخطاب","علي بن أبي طالب"],a:1},
+{u:"التقويم",q:"هاجر أبو هريرة إلى المدينة عام:",o:["الهجرة","بدر","خيبر","الفتح"],a:2},
+{u:"التقويم",q:"من أسباب كثرة رواية أبي هريرة:",o:["كثرة السفر","ملازمة النبي ﷺ","التجارة","القوة"],a:1},
+
+{u:"تطبيقات",q:"السلوك الصحيح عند الغضب:",o:["الضرب","السب","السكوت وضبط النفس","الهروب"],a:2},
+{u:"تطبيقات",q:"الغضب يؤدي إلى:",o:["تقوية العلاقات","قطع الأواصر","الاحترام","الهدوء"],a:1},
+{u:"تطبيقات",q:"من آثار الغضب القلبية:",o:["الرحمة","الحقد","السكينة","الطمأنينة"],a:1},
+
+{u:"مراجعة",q:"النبي ﷺ كان يجيب السائل:",o:["بنفس الجواب دائمًا","بما يناسبه","بغضب","بتجاهل"],a:1},
+{u:"مراجعة",q:"من وسائل علاج الغضب:",o:["رفع الصوت","تذكر العواقب","السب","العجلة"],a:1},
+{u:"مراجعة",q:"الغضب طريق إلى:",o:["السلام","المودة","المشاكل","النجاح"],a:2},
+{u:"مراجعة",q:"كظم الغيظ يعني:",o:["إظهار الغضب","حبس الغضب","الانتقام","الصراخ"],a:1},
+{u:"مراجعة",q:"الحديث الشريف من:",o:["جوامع الكلم","الأمثال","القصص","الأشعار"],a:0},
+];
+
+// ======= منطق التشغيل =======
+let index=0;
+const qEl=document.getElementById("question");
+const oEl=document.getElementById("options");
+const uEl=document.getElementById("unit");
+const cEl=document.getElementById("counter");
+const bar=document.getElementById("bar");
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+const stars=document.getElementById("stars");
+
+function render(){
+  const q=questions[index];
+  uEl.textContent="الوحدة / القسم: "+q.u;
+  qEl.textContent=q.q;
+  oEl.innerHTML="";
+  q.o.forEach((txt,i)=>{
+    const b=document.createElement("button");
+    b.className="option";
+    b.textContent=txt;
+    b.onclick=()=>check(i,b);
+    oEl.appendChild(b);
+  });
+  cEl.textContent=`السؤال ${index+1} من ${questions.length}`;
+  bar.style.width=((index)/questions.length*100)+"%";
+}
+
+function check(i,btn){
+  const q=questions[index];
+  if(i===q.a){
+    btn.classList.add("correct");
+    correctSound.currentTime=0; correctSound.play();
+    showStars();
+    setTimeout(()=>{
+      index++;
+      if(index<questions.length){render();}
+      else finish();
+    },900);
+  }else{
+    btn.classList.add("wrong");
+    wrongSound.currentTime=0; wrongSound.play();
+  }
+}
+
+function showStars(){
+  stars.innerHTML="";stars.style.display="block";
+  for(let i=0;i<12;i++){
+    const s=document.createElement("div");
+    s.className="star";
+    s.textContent="⭐";
+    s.style.left=Math.random()*100+"%";
+    s.style.top="80%";
+    stars.appendChild(s);
+  }
+  setTimeout(()=>stars.style.display="none",1000);
+}
+
+function finish(){
+  qEl.textContent="🎉 أحسنت! أنهيت الاختبار بنجاح.";
+  uEl.textContent="بارك الله فيك";
+  oEl.innerHTML="";
+  bar.style.width="100%";
+}
+
+render();
+</script>
+</body>
+</html>
